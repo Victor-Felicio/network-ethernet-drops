@@ -11,12 +11,12 @@ ROOMS = (
     [f"Classroom {i}" for i in range(1, 15)]
     + [
         "Teachers' Lounge",
-        "Secretariat Office",
+        "Front Office",
         "Fernanda / Roberval Office",
         "Talita / Julio Office",
         "Principal's Office",
-        "PROATI Room",
-        "Resource Room",
+        "PROATI Office",
+        "Resources Classroom",
     ]
 )
 
