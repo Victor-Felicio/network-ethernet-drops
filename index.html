@@ -39,7 +39,31 @@
     <h1>Network Infrastructure Manager</h1>
     <p class="subtitle">Select a location below, then add or remove Ethernet Drops.</p>
 
-    <div class="grid" id="roomMenu"></div>
+    <div class="grid" id="roomMenu">
+        <button type="button" class="room-btn active" onclick="selectRoom('Classroom 1', this)">Classroom 1 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 2', this)">Classroom 2 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 3', this)">Classroom 3 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 4', this)">Classroom 4 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 5', this)">Classroom 5 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 6', this)">Classroom 6 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 7', this)">Classroom 7 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 8', this)">Classroom 8 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 9', this)">Classroom 9 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 10', this)">Classroom 10 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 11', this)">Classroom 11 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 12', this)">Classroom 12 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 13', this)">Classroom 13 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Classroom 14', this)">Classroom 14 (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Teachers\' Lounge', this)">Teachers' Lounge (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Secretariat Office', this)">Secretariat Office (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Fernanda / Roberval Office', this)">Fernanda / Roberval Office (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Talita / Julio Office', this)">Talita / Julio Office (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Rogério / Ana Office', this)">Rogério / Ana Office (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Principal\'s Office', this)">Principal's Office (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('PROATI Room', this)">PROATI Room (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Resource Room', this)">Resource Room (0)</button>
+        <button type="button" class="room-btn" onclick="selectRoom('Appendice Room', this)">Appendice Room (0)</button>
+    </div>
 
     <div class="panel">
         <h2 id="selectedTitle" style="margin:0; font-size: 18px;">Selected: Classroom 1 (0 Ethernet Drops)</h2>
@@ -53,7 +77,7 @@
     <div class="report-box">
         <div class="report-header">
             <h3 id="reportTitle" style="margin:0; font-size: 16px;">Network Infrastructure Report</h3>
-            <button type="button" class="download-btn" onclick="downloadNativePDF()">Download</button>
+            <button type="button" class="download-btn" onclick="downloadPDF()">Download</button>
         </div>
         <table>
             <thead>
@@ -89,7 +113,7 @@
     }
 
     try {
-        var saved = localStorage.getItem("network_drops_ghpages");
+        var saved = localStorage.getItem("network_drops_v5");
         if (saved) {
             var parsed = JSON.parse(saved);
             for (var k = 0; k < rooms.length; k++) {
@@ -100,11 +124,11 @@
         }
     } catch (e) {}
 
-    var selectedRoom = rooms[0];
+    var selectedRoom = "Classroom 1";
 
     function saveLocal() {
         try {
-            localStorage.setItem("network_drops_ghpages", JSON.stringify(counts));
+            localStorage.setItem("network_drops_v5", JSON.stringify(counts));
         } catch (e) {}
     }
 
@@ -113,22 +137,30 @@
         return new Date().toLocaleDateString('en-US', options);
     }
 
-    function renderAll() {
-        var menu = document.getElementById("roomMenu");
-        menu.innerHTML = "";
+    function selectRoom(roomName, btnElement) {
+        selectedRoom = roomName;
+        var allBtns = document.querySelectorAll(".room-btn");
+        for (var i = 0; i < allBtns.length; i++) {
+            allBtns[i].classList.remove("active");
+        }
+        if (btnElement) {
+            btnElement.classList.add("active");
+        }
+        updateScreen();
+    }
+
+    function updateScreen() {
+        var allBtns = document.querySelectorAll(".room-btn");
         for (var i = 0; i < rooms.length; i++) {
             var r = rooms[i];
-            var btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "room-btn" + (r === selectedRoom ? " active" : "");
-            btn.textContent = (r === selectedRoom ? "🔵 " : "") + r + " (" + counts[r] + ")";
-            btn.onclick = (function(roomName) {
-                return function() {
-                    selectedRoom = roomName;
-                    renderAll();
-                };
-            })(r);
-            menu.appendChild(btn);
+            if (allBtns[i]) {
+                allBtns[i].textContent = r + " (" + counts[r] + ")";
+                if (r === selectedRoom) {
+                    allBtns[i].classList.add("active");
+                } else {
+                    allBtns[i].classList.remove("active");
+                }
+            }
         }
 
         var currentCount = counts[selectedRoom];
@@ -145,88 +177,3 @@
                 card.className = "drop-card";
                 card.textContent = "Ethernet Drop #" + (j < 10 ? "0" + j : j);
                 view.appendChild(card);
-            }
-        }
-
-        var dateText = getFormattedDate();
-        document.getElementById("reportTitle").textContent = "Network Infrastructure Report — " + dateText;
-
-        var tbody = document.getElementById("reportBody");
-        tbody.innerHTML = "";
-        var total = 0;
-
-        for (var m = 0; m < rooms.length; m++) {
-            var loc = rooms[m];
-            var c = counts[loc];
-            total += c;
-            var tr = document.createElement("tr");
-            tr.innerHTML = "<td>" + loc + "</td><td class='num'>" + c + "</td>";
-            tbody.appendChild(tr);
-        }
-
-        var trTotal = document.createElement("tr");
-        trTotal.className = "total-row";
-        trTotal.innerHTML = "<td>TOTAL ETHERNET DROPS</td><td class='num'>" + total + "</td>";
-        tbody.appendChild(trTotal);
-    }
-
-    function changeDrops(delta) {
-        if (counts[selectedRoom] + delta >= 0) {
-            counts[selectedRoom] += delta;
-            saveLocal();
-            renderAll();
-        }
-    }
-
-    function escapePdfText(str) {
-        return str
-            .replace(/é/g, "e")
-            .replace(/ú/g, "u")
-            .replace(/\\/g, "\\\\")
-            .replace(/\(/g, "\\(")
-            .replace(/\)/g, "\\)");
-    }
-
-    function downloadNativePDF() {
-        var dateText = getFormattedDate();
-        var ops = [];
-
-        ops.push("BT /F2 14 Tf 50 780 Td (" + escapePdfText("Network Infrastructure Report - " + dateText) + ") Tj ET");
-
-        ops.push("0.90 0.93 0.96 rg 50 742 495 20 re f");
-        ops.push("0 0 0 rg");
-        ops.push("BT /F2 10 Tf 58 748 Td (Location) Tj ET");
-        ops.push("BT /F2 10 Tf 455 748 Td (Ethernet Drops) Tj ET");
-
-        var y = 724;
-        var total = 0;
-
-        for (var i = 0; i < rooms.length; i++) {
-            var r = rooms[i];
-            var c = counts[r];
-            total += c;
-
-            ops.push("0.85 0.85 0.85 RG 0.5 w 50 " + (y - 6) + " m 545 " + (y - 6) + " l S");
-            ops.push("BT /F1 10 Tf 58 " + y + " Td (" + escapePdfText(r) + ") Tj ET");
-
-            var numStr = String(c);
-            var xNum = 535 - (numStr.length * 6);
-            ops.push("BT /F1 10 Tf " + xNum + " " + y + " Td (" + numStr + ") Tj ET");
-
-            y -= 22;
-        }
-
-        y -= 4;
-        ops.push("0.84 0.88 0.94 rg 50 " + (y - 6) + " 495 22 re f");
-        ops.push("0 0 0 rg");
-        ops.push("BT /F2 11 Tf 58 " + y + " Td (TOTAL ETHERNET DROPS) Tj ET");
-
-        var totalStr = String(total);
-        var xTotal = 535 - (totalStr.length * 6.5);
-        ops.push("BT /F2 11 Tf " + xTotal + " " + y + " Td (" + totalStr + ") Tj ET");
-
-        var streamContent = ops.join("\n");
-
-        var objects = [];
-        objects.push("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
-        objects.push("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
