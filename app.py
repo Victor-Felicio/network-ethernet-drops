@@ -11,19 +11,25 @@ ROOMS = (
     [f"Classroom {i}" for i in range(1, 15)]
     + [
         "Teachers' Lounge",
-        "Front Office",
+        "Secretariat Office",
         "Fernanda / Roberval Office",
         "Talita / Julio Office",
+        "Rogério / Ana Office",
         "Principal's Office",
-        "PROATI Office",
-        "Resources Classroom",
+        "PROATI Room",
+        "Resource Room",
+        "Appendice Room",
     ]
 )
 
 def load_data():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            for room in ROOMS:
+                if room not in data:
+                    data[room] = 0
+            return data
     return {room: 0 for room in ROOMS}
 
 def save_data(data):
@@ -32,6 +38,10 @@ def save_data(data):
 
 if "drops" not in st.session_state:
     st.session_state.drops = load_data()
+else:
+    for room in ROOMS:
+        if room not in st.session_state.drops:
+            st.session_state.drops[room] = 0
 
 if "selected" not in st.session_state:
     st.session_state.selected = "Classroom 1"
