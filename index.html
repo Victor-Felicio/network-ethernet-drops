@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Network Infrastructure Manager</title>
-    <!-- Biblioteca para gerar e baixar PDF diretamente -->
-    <script src="https://cloudflare.com"></script>
     <style>
         body { font-family: Arial, sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; display: flex; justify-content: center; margin: 0; }
         .box { width: 100%; max-width: 900px; background: #1e293b; padding: 24px; border-radius: 10px; border: 1px solid #334155; }
@@ -26,7 +24,7 @@
         .drop-card { background: #1e293b; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; font-size: 14px; }
         .report-box { background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155; }
         .report-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
-        .download-btn { padding: 12px 20px; background: #0284c7; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .download-btn { padding: 12px 24px; background: #0284c7; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .download-btn:hover { background: #0369a1; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { padding: 10px 12px; border-bottom: 1px solid #334155; text-align: left; }
@@ -55,7 +53,7 @@
     <div class="report-box">
         <div class="report-header">
             <h3 id="reportTitle" style="margin:0; font-size: 16px;">Network Infrastructure Report</h3>
-            <button type="button" class="download-btn" onclick="downloadPDF()">Download</button>
+            <button type="button" class="download-btn" onclick="downloadNativePDF()">Download</button>
         </div>
         <table>
             <thead>
@@ -90,7 +88,6 @@
         counts[rooms[i]] = 0;
     }
 
-    // Carrega dados salvos no navegador, se existirem
     try {
         var saved = localStorage.getItem("network_drops_ghpages");
         if (saved) {
@@ -103,7 +100,7 @@
         }
     } catch (e) {}
 
-    var selectedRoom = rooms;
+    var selectedRoom = rooms[0];
 
     function saveLocal() {
         try {
@@ -117,7 +114,6 @@
     }
 
     function renderAll() {
-        // 1. Renderiza botões das salas
         var menu = document.getElementById("roomMenu");
         menu.innerHTML = "";
         for (var i = 0; i < rooms.length; i++) {
@@ -135,7 +131,6 @@
             menu.appendChild(btn);
         }
 
-        // 2. Atualiza painel da sala selecionada
         var currentCount = counts[selectedRoom];
         document.getElementById("selectedTitle").textContent = "Selected: " + selectedRoom + " (" + currentCount + " Ethernet Drops)";
         document.getElementById("removeBtn").disabled = (currentCount === 0);
@@ -153,7 +148,6 @@
             }
         }
 
-        // 3. Atualiza tabela do relatório
         var dateText = getFormattedDate();
         document.getElementById("reportTitle").textContent = "Network Infrastructure Report — " + dateText;
 
@@ -184,24 +178,30 @@
         }
     }
 
-    function downloadPDF() {
-        var jsPDF = window.jspdf.jsPDF;
-        var doc = new jsPDF();
+    // Gerador de PDF 100% nativo sem depender de bibliotecas externas
+    function escapePdfText(str) {
+        return str
+            .replace(/é/g, "e")
+            .replace(/ú/g, "u")
+            .replace(/\\/g, "\\\\")
+            .replace(/\(/g, "\\(")
+            .replace(/\)/g, "\\)");
+    }
+
+    function downloadNativePDF() {
         var dateText = getFormattedDate();
+        var ops = [];
 
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
-        doc.text("Network Infrastructure Report — " + dateText, 14, 18);
+        // Titulo principal
+        ops.push("BT /F2 14 Tf 50 780 Td (" + escapePdfText("Network Infrastructure Report - " + dateText) + ") Tj ET");
 
-        var y = 28;
-        doc.setFontSize(10);
-        doc.setFillColor(230, 236, 245);
-        doc.rect(14, y - 6, 182, 8, "F");
-        doc.text("Location", 16, y);
-        doc.text("Ethernet Drops", 194, y, { align: "right" });
+        // Cabecalho da tabela
+        ops.push("0.90 0.93 0.96 rg 50 742 495 20 re f");
+        ops.push("0 0 0 rg");
+        ops.push("BT /F2 10 Tf 58 748 Td (Location) Tj ET");
+        ops.push("BT /F2 10 Tf 455 748 Td (Ethernet Drops) Tj ET");
 
-        y += 8;
-        doc.setFont("helvetica", "normal");
+        var y = 724;
         var total = 0;
 
         for (var i = 0; i < rooms.length; i++) {
@@ -209,31 +209,24 @@
             var c = counts[r];
             total += c;
 
-            if (y > 275) {
-                doc.addPage();
-                y = 20;
-            }
+            // Linha de grade suave
+            ops.push("0.85 0.85 0.85 RG 0.5 w 50 " + (y - 6) + " m 545 " + (y - 6) + " l S");
 
-            doc.text(r, 16, y);
-            doc.text(String(c), 194, y, { align: "right" });
-            doc.setDrawColor(220, 220, 220);
-            doc.line(14, y + 2, 196, y + 2);
-            y += 7;
+            // Nome da sala e quantidade
+            ops.push("BT /F1 10 Tf 58 " + y + " Td (" + escapePdfText(r) + ") Tj ET");
+            var numStr = String(c);
+            var xNum = 535 - (numStr.length * 6);
+            ops.push("BT /F1 10 Tf " + xNum + " " + y + " Td (" + numStr + ") Tj ET");
+
+            y -= 22;
         }
 
-        y += 2;
-        doc.setFont("helvetica", "bold");
-        doc.setFillColor(215, 225, 240);
-        doc.rect(14, y - 5, 182, 8, "F");
-        doc.text("TOTAL ETHERNET DROPS", 16, y);
-        doc.text(String(total), 194, y, { align: "right" });
+        // Linha final de Total
+        y -= 4;
+        ops.push("0.84 0.88 0.94 rg 50 " + (y - 6) + " 495 22 re f");
+        ops.push("0 0 0 rg");
+        ops.push("BT /F2 11 Tf 58 " + y + " Td (TOTAL ETHERNET DROPS) Tj ET");
+        var totalStr = String(total);
+        var xTotal = 535 - (totalStr.length * 6.5);
+        ops.push("BT /F2 11 Tf " + xTotal + " " + y + " Td (" + totalStr + ") Tj ET");
 
-        var isoDate = new Date().toISOString().slice(0, 10);
-        doc.save("network_infrastructure_report_" + isoDate + ".pdf");
-    }
-
-    renderAll();
-</script>
-
-</body>
-</html>
