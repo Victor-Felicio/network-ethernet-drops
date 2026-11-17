@@ -177,3 +177,69 @@
         document.getElementById("btnRemove").disabled = (currentCount === 0);
 
         var view = document.getElementById("dropsView");
+        view.innerHTML = "";
+        if (currentCount === 0) {
+            view.innerHTML = "<span style='color:#94a3b8; font-style:italic;'>No Ethernet Drops registered in " + currentName + " yet.</span>";
+        } else {
+            for (var j = 1; j <= currentCount; j++) {
+                var card = document.createElement("div");
+                card.className = "drop-card";
+                card.textContent = "Ethernet Drop #" + (j < 10 ? "0" + j : j);
+                view.appendChild(card);
+            }
+        }
+
+        var dateText = getFormattedDate();
+        document.getElementById("reportTitle").textContent = "Network Infrastructure Report \u2014 " + dateText;
+
+        var tbody = document.getElementById("reportBody");
+        tbody.innerHTML = "";
+        var total = 0;
+
+        for (var m = 0; m < roomKeys.length; m++) {
+            var rKey = roomKeys[m];
+            var c = counts[rKey];
+            total += c;
+            var tr = document.createElement("tr");
+            tr.innerHTML = "<td>" + roomNames[rKey] + "</td><td class='num'>" + c + "</td>";
+            tbody.appendChild(tr);
+        }
+
+        var trTotal = document.createElement("tr");
+        trTotal.className = "total-row";
+        trTotal.innerHTML = "<td>TOTAL ETHERNET DROPS</td><td class='num'>" + total + "</td>";
+        tbody.appendChild(trTotal);
+    }
+
+    document.getElementById("roomMenu").addEventListener("click", function(e) {
+        var btn = e.target.closest(".room-btn");
+        if (btn) {
+            selectedId = btn.getAttribute("data-id");
+            updateScreen();
+        }
+    });
+
+    document.getElementById("btnAdd").addEventListener("click", function() {
+        counts[selectedId] += 1;
+        saveLocal();
+        updateScreen();
+    });
+
+    document.getElementById("btnRemove").addEventListener("click", function() {
+        if (counts[selectedId] > 0) {
+            counts[selectedId] -= 1;
+            saveLocal();
+            updateScreen();
+        }
+    });
+
+    document.getElementById("btnDownload").addEventListener("click", function() {
+        window.print();
+    });
+
+    updateScreen();
+</script>
+
+</body>
+</html>
+
