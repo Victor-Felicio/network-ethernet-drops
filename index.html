@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Infrastructure Manager</title>
+    <!-- Biblioteca para gerar e baixar PDF diretamente -->
+    <script src="https://cloudflare.com"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; display: flex; justify-content: center; margin: 0; }
+        .box { width: 100%; max-width: 900px; background: #1e293b; padding: 24px; border-radius: 10px; border: 1px solid #334155; }
+        h1 { margin: 0 0 6px 0; font-size: 22px; }
+        .subtitle { color: #94a3b8; margin: 0 0 20px 0; font-size: 14px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .room-btn { padding: 13px 14px; background: #334155; color: #f8fafc; border: 2px solid #475569; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: left; font-size: 14px; transition: 0.15s; }
+        .room-btn:hover { background: #475569; }
+        .room-btn.active { background: #2563eb; border-color: #93c5fd; }
+        .panel { background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 20px; }
+        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+        .add-btn { padding: 14px; background: #16a34a; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; }
+        .add-btn:hover { background: #15803d; }
+        .rem-btn { padding: 14px; background: #dc2626; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; }
+        .rem-btn:hover:not(:disabled) { background: #b91c1c; }
+        .rem-btn:disabled { background: #475569; cursor: not-allowed; opacity: 0.6; }
+        .drops-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+        .drop-card { background: #1e293b; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; font-size: 14px; }
+        .report-box { background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155; }
+        .report-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+        .download-btn { padding: 12px 20px; background: #0284c7; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .download-btn:hover { background: #0369a1; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #334155; text-align: left; }
+        th { background: #1e293b; color: #cbd5e1; }
+        td.num, th.num { text-align: right; }
+        tr.total-row td { background: #1e293b; font-weight: bold; color: #38bdf8; border-top: 2px solid #475569; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h1>Network Infrastructure Manager</h1>
+    <p class="subtitle">Select a location below, then add or remove Ethernet Drops.</p>
+
+    <div class="grid" id="roomMenu"></div>
+
+    <div class="panel">
+        <h2 id="selectedTitle" style="margin:0; font-size: 18px;">Selected: Classroom 1 (0 Ethernet Drops)</h2>
+        <div class="actions">
+            <button type="button" class="add-btn" onclick="changeDrops(1)">+ Add Ethernet Drop</button>
+            <button type="button" class="rem-btn" id="removeBtn" onclick="changeDrops(-1)" disabled>- Remove Ethernet Drop</button>
+        </div>
+        <div class="drops-grid" id="dropsView"></div>
+    </div>
+
+    <div class="report-box">
+        <div class="report-header">
+            <h3 id="reportTitle" style="margin:0; font-size: 16px;">Network Infrastructure Report</h3>
+            <button type="button" class="download-btn" onclick="downloadPDF()">Download</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Location</th>
+                    <th class="num">Ethernet Drops</th>
+                </tr>
+            </thead>
+            <tbody id="reportBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    var rooms = [
+        "Classroom 1", "Classroom 2", "Classroom 3", "Classroom 4", "Classroom 5",
+        "Classroom 6", "Classroom 7", "Classroom 8", "Classroom 9", "Classroom 10",
+        "Classroom 11", "Classroom 12", "Classroom 13", "Classroom 14",
+        "Teachers' Lounge",
+        "Secretariat Office",
+        "Fernanda / Roberval Office",
+        "Talita / Julio Office",
+        "Rogério / Ana Office",
+        "Principal's Office",
+        "PROATI Room",
+        "Resource Room",
+        "Appendice Room"
+    ];
+
+    var counts = {};
+    for (var i = 0; i < rooms.length; i++) {
+        counts[rooms[i]] = 0;
+    }
+
+    // Carrega dados salvos no navegador, se existirem
+    try {
+        var saved = localStorage.getItem("network_drops_ghpages");
+        if (saved) {
+            var parsed = JSON.parse(saved);
+            for (var k = 0; k < rooms.length; k++) {
+                if (typeof parsed[rooms[k]] === "number") {
+                    counts[rooms[k]] = parsed[rooms[k]];
+                }
+            }
+        }
+    } catch (e) {}
+
+    var selectedRoom = rooms;
+
+    function saveLocal() {
+        try {
+            localStorage.setItem("network_drops_ghpages", JSON.stringify(counts));
+        } catch (e) {}
+    }
+
+    function getFormattedDate() {
+        var options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date().toLocaleDateString('en-US', options);
+    }
+
+    function renderAll() {
+        // 1. Renderiza botões das salas
+        var menu = document.getElementById("roomMenu");
+        menu.innerHTML = "";
+        for (var i = 0; i < rooms.length; i++) {
+            var r = rooms[i];
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "room-btn" + (r === selectedRoom ? " active" : "");
+            btn.textContent = (r === selectedRoom ? "🔵 " : "") + r + " (" + counts[r] + ")";
+            btn.onclick = (function(roomName) {
+                return function() {
+                    selectedRoom = roomName;
+                    renderAll();
+                };
+            })(r);
+            menu.appendChild(btn);
+        }
+
+        // 2. Atualiza painel da sala selecionada
+        var currentCount = counts[selectedRoom];
+        document.getElementById("selectedTitle").textContent = "Selected: " + selectedRoom + " (" + currentCount + " Ethernet Drops)";
+        document.getElementById("removeBtn").disabled = (currentCount === 0);
+
+        var view = document.getElementById("dropsView");
+        view.innerHTML = "";
+        if (currentCount === 0) {
+            view.innerHTML = "<span style='color:#94a3b8; font-style:italic;'>No Ethernet Drops registered in " + selectedRoom + " yet.</span>";
+        } else {
+            for (var j = 1; j <= currentCount; j++) {
+                var card = document.createElement("div");
+                card.className = "drop-card";
+                card.textContent = "Ethernet Drop #" + (j < 10 ? "0" + j : j);
+                view.appendChild(card);
+            }
+        }
+
+        // 3. Atualiza tabela do relatório
+        var dateText = getFormattedDate();
+        document.getElementById("reportTitle").textContent = "Network Infrastructure Report — " + dateText;
+
+        var tbody = document.getElementById("reportBody");
+        tbody.innerHTML = "";
+        var total = 0;
+
+        for (var m = 0; m < rooms.length; m++) {
+            var loc = rooms[m];
+            var c = counts[loc];
+            total += c;
+            var tr = document.createElement("tr");
+            tr.innerHTML = "<td>" + loc + "</td><td class='num'>" + c + "</td>";
+            tbody.appendChild(tr);
+        }
+
+        var trTotal = document.createElement("tr");
+        trTotal.className = "total-row";
+        trTotal.innerHTML = "<td>TOTAL ETHERNET DROPS</td><td class='num'>" + total + "</td>";
+        tbody.appendChild(trTotal);
+    }
+
+    function changeDrops(delta) {
+        if (counts[selectedRoom] + delta >= 0) {
+            counts[selectedRoom] += delta;
+            saveLocal();
+            renderAll();
+        }
+    }
+
+    function downloadPDF() {
+        var jsPDF = window.jspdf.jsPDF;
+        var doc = new jsPDF();
+        var dateText = getFormattedDate();
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.text("Network Infrastructure Report — " + dateText, 14, 18);
+
+        var y = 28;
+        doc.setFontSize(10);
+        doc.setFillColor(230, 236, 245);
+        doc.rect(14, y - 6, 182, 8, "F");
+        doc.text("Location", 16, y);
+        doc.text("Ethernet Drops", 194, y, { align: "right" });
+
+        y += 8;
+        doc.setFont("helvetica", "normal");
+        var total = 0;
+
+        for (var i = 0; i < rooms.length; i++) {
+            var r = rooms[i];
+            var c = counts[r];
+            total += c;
+
+            if (y > 275) {
+                doc.addPage();
+                y = 20;
+            }
+
+            doc.text(r, 16, y);
+            doc.text(String(c), 194, y, { align: "right" });
+            doc.setDrawColor(220, 220, 220);
+            doc.line(14, y + 2, 196, y + 2);
+            y += 7;
+        }
+
+        y += 2;
+        doc.setFont("helvetica", "bold");
+        doc.setFillColor(215, 225, 240);
+        doc.rect(14, y - 5, 182, 8, "F");
+        doc.text("TOTAL ETHERNET DROPS", 16, y);
+        doc.text(String(total), 194, y, { align: "right" });
+
+        var isoDate = new Date().toISOString().slice(0, 10);
+        doc.save("network_infrastructure_report_" + isoDate + ".pdf");
+    }
+
+    renderAll();
+</script>
+
+</body>
+</html>
