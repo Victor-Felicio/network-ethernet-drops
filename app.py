@@ -5,6 +5,44 @@ from datetime import date
 
 st.set_page_config(page_title="Network Infrastructure Manager", layout="centered")
 
+
+st.markdown(
+    """
+    <style>
+    @media print {
+        /* Oculta barra superior, menus e todos os elementos principais */
+        header, [data-testid="stHeader"], [data-testid="stToolbar"] {
+            display: none !important;
+        }
+        .main .block-container > div > div:not(:last-child) {
+            display: none !important;
+        }
+        /* Remove bordas e seta do expander para parecer um documento limpo */
+        [data-testid="stExpander"] {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        [data-testid="stExpander"] summary {
+            display: none !important;
+        }
+        /* Esconde a legenda de instrução na hora de salvar o PDF */
+        [data-testid="stExpander"] [data-testid="stCaptionContainer"] {
+            display: none !important;
+        }
+        /* Força fundo branco e texto escuro no PDF */
+        body, .stApp, [data-testid="stAppViewContainer"] {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+        }
+        h3, td, th {
+            color: #000000 !important;
+        }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 DATA_FILE = "ethernet_drops_data.json"
 
 ROOMS = (
@@ -46,46 +84,49 @@ else:
 if "selected" not in st.session_state:
     st.session_state.selected = "Classroom 1"
 
-st.title("Network Infrastructure Manager")
-st.caption("Select a location below, then add or remove Ethernet Drops.")
 
-cols = st.columns(3)
-for idx, room in enumerate(ROOMS):
-    count = st.session_state.drops.get(room, 0)
-    is_selected = (st.session_state.selected == room)
-    label = f"🔵 {room} ({count})" if is_selected else f"{room} ({count})"
-    
-    if cols[idx % 3].button(label, key=f"btn_{room}", use_container_width=True):
-        st.session_state.selected = room
+with st.container():
+    st.title("Network Infrastructure Manager")
+    st.caption("Select a location below, then add or remove Ethernet Drops.")
+
+    cols = st.columns(3)
+    for idx, room in enumerate(ROOMS):
+        count = st.session_state.drops.get(room, 0)
+        is_selected = (st.session_state.selected == room)
+        label = f"🔵 {room} ({count})" if is_selected else f"{room} ({count})"
+        
+        if cols[idx % 3].button(label, key=f"btn_{room}", use_container_width=True):
+            st.session_state.selected = room
+            st.rerun()
+
+    st.divider()
+
+    active_room = st.session_state.selected
+    current_count = st.session_state.drops.get(active_room, 0)
+
+    st.subheader(f"Selected: {active_room} ({current_count} Ethernet Drops)")
+
+    col_add, col_rem = st.columns(2)
+
+    if col_add.button("+ Add Ethernet Drop", type="primary", use_container_width=True):
+        st.session_state.drops[active_room] += 1
+        save_data(st.session_state.drops)
         st.rerun()
 
-st.divider()
+    if col_rem.button("- Remove Ethernet Drop", disabled=(current_count == 0), use_container_width=True):
+        st.session_state.drops[active_room] -= 1
+        save_data(st.session_state.drops)
+        st.rerun()
 
-active_room = st.session_state.selected
-current_count = st.session_state.drops.get(active_room, 0)
+    if current_count > 0:
+        drop_cols = st.columns(3)
+        for n in range(1, current_count + 1):
+            drop_cols[(n - 1) % 3].info(f"Ethernet Drop #{n:02d}")
+    else:
+        st.write(f"*No Ethernet Drops registered in {active_room} yet.*")
 
-st.subheader(f"Selected: {active_room} ({current_count} Ethernet Drops)")
+    st.divider()
 
-col_add, col_rem = st.columns(2)
-
-if col_add.button("+ Add Ethernet Drop", type="primary", use_container_width=True):
-    st.session_state.drops[active_room] += 1
-    save_data(st.session_state.drops)
-    st.rerun()
-
-if col_rem.button("- Remove Ethernet Drop", disabled=(current_count == 0), use_container_width=True):
-    st.session_state.drops[active_room] -= 1
-    save_data(st.session_state.drops)
-    st.rerun()
-
-if current_count > 0:
-    drop_cols = st.columns(3)
-    for n in range(1, current_count + 1):
-        drop_cols[(n - 1) % 3].info(f"Ethernet Drop #{n:02d}")
-else:
-    st.write(f"*No Ethernet Drops registered in {active_room} yet.*")
-
-st.divider()
 
 with st.expander("View & Export PDF Report"):
     st.markdown(f"### Network Infrastructure Report — {date.today().strftime('%B %d, %Y')}")
@@ -95,4 +136,4 @@ with st.expander("View & Export PDF Report"):
     report_rows.append({"Location": "TOTAL ETHERNET DROPS", "Ethernet Drops": total})
     
     st.table(report_rows)
-    st.caption("Press Ctrl + P in your browser and select 'Save as PDF' to save this report.")
+    st.caption("Open this section and press Ctrl + P in your browser, then choose 'Save as PDF'.")
