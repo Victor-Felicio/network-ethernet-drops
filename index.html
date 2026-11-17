@@ -178,7 +178,6 @@
         }
     }
 
-    // Gerador de PDF 100% nativo sem depender de bibliotecas externas
     function escapePdfText(str) {
         return str
             .replace(/é/g, "e")
@@ -192,10 +191,8 @@
         var dateText = getFormattedDate();
         var ops = [];
 
-        // Titulo principal
         ops.push("BT /F2 14 Tf 50 780 Td (" + escapePdfText("Network Infrastructure Report - " + dateText) + ") Tj ET");
 
-        // Cabecalho da tabela
         ops.push("0.90 0.93 0.96 rg 50 742 495 20 re f");
         ops.push("0 0 0 rg");
         ops.push("BT /F2 10 Tf 58 748 Td (Location) Tj ET");
@@ -209,11 +206,9 @@
             var c = counts[r];
             total += c;
 
-            // Linha de grade suave
             ops.push("0.85 0.85 0.85 RG 0.5 w 50 " + (y - 6) + " m 545 " + (y - 6) + " l S");
-
-            // Nome da sala e quantidade
             ops.push("BT /F1 10 Tf 58 " + y + " Td (" + escapePdfText(r) + ") Tj ET");
+
             var numStr = String(c);
             var xNum = 535 - (numStr.length * 6);
             ops.push("BT /F1 10 Tf " + xNum + " " + y + " Td (" + numStr + ") Tj ET");
@@ -221,12 +216,17 @@
             y -= 22;
         }
 
-        // Linha final de Total
         y -= 4;
         ops.push("0.84 0.88 0.94 rg 50 " + (y - 6) + " 495 22 re f");
         ops.push("0 0 0 rg");
         ops.push("BT /F2 11 Tf 58 " + y + " Td (TOTAL ETHERNET DROPS) Tj ET");
+
         var totalStr = String(total);
         var xTotal = 535 - (totalStr.length * 6.5);
         ops.push("BT /F2 11 Tf " + xTotal + " " + y + " Td (" + totalStr + ") Tj ET");
 
+        var streamContent = ops.join("\n");
+
+        var objects = [];
+        objects.push("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+        objects.push("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
