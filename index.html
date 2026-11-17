@@ -10,7 +10,7 @@
         h1 { margin: 0 0 6px 0; font-size: 22px; }
         .subtitle { color: #94a3b8; margin: 0 0 20px 0; font-size: 14px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .room-btn { padding: 13px 14px; background: #334155; color: #f8fafc; border: 2px solid #475569; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: left; font-size: 14px; transition: 0.15s; }
+        .room-btn { padding: 13px 14px; background: #334155; color: #f8fafc; border: 2px solid #475569; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: left; font-size: 14px; }
         .room-btn:hover { background: #475569; }
         .room-btn.active { background: #2563eb; border-color: #93c5fd; }
         .panel { background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 20px; }
@@ -32,7 +32,6 @@
         td.num, th.num { text-align: right; }
         tr.total-row td { background: #1e293b; font-weight: bold; color: #38bdf8; border-top: 2px solid #475569; }
 
-        /* Regras para gerar o PDF apenas com o Relatório */
         @media print {
             body { background: #ffffff !important; color: #000000 !important; padding: 0 !important; display: block !important; }
             .box { background: #ffffff !important; border: none !important; padding: 0 !important; max-width: 100% !important; }
@@ -53,44 +52,44 @@
     <p class="subtitle">Select a location below, then add or remove Ethernet Drops.</p>
 
     <div class="grid" id="roomMenu">
-        <button type="button" class="room-btn active" onclick="selectRoom('Classroom 1', this)">Classroom 1 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 2', this)">Classroom 2 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 3', this)">Classroom 3 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 4', this)">Classroom 4 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 5', this)">Classroom 5 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 6', this)">Classroom 6 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 7', this)">Classroom 7 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 8', this)">Classroom 8 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 9', this)">Classroom 9 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 10', this)">Classroom 10 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 11', this)">Classroom 11 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 12', this)">Classroom 12 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 13', this)">Classroom 13 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Classroom 14', this)">Classroom 14 (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Teachers\' Lounge', this)">Teachers' Lounge (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Secretariat Office', this)">Secretariat Office (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Fernanda / Roberval Office', this)">Fernanda / Roberval Office (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Talita / Julio Office', this)">Talita / Julio Office (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Rogério / Ana Office', this)">Rogério / Ana Office (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Principal\'s Office', this)">Principal's Office (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('PROATI Room', this)">PROATI Room (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Resource Room', this)">Resource Room (0)</button>
-        <button type="button" class="room-btn" onclick="selectRoom('Appendice Room', this)">Appendice Room (0)</button>
+        <button type="button" class="room-btn active" data-id="c1">Classroom 1 (0)</button>
+        <button type="button" class="room-btn" data-id="c2">Classroom 2 (0)</button>
+        <button type="button" class="room-btn" data-id="c3">Classroom 3 (0)</button>
+        <button type="button" class="room-btn" data-id="c4">Classroom 4 (0)</button>
+        <button type="button" class="room-btn" data-id="c5">Classroom 5 (0)</button>
+        <button type="button" class="room-btn" data-id="c6">Classroom 6 (0)</button>
+        <button type="button" class="room-btn" data-id="c7">Classroom 7 (0)</button>
+        <button type="button" class="room-btn" data-id="c8">Classroom 8 (0)</button>
+        <button type="button" class="room-btn" data-id="c9">Classroom 9 (0)</button>
+        <button type="button" class="room-btn" data-id="c10">Classroom 10 (0)</button>
+        <button type="button" class="room-btn" data-id="c11">Classroom 11 (0)</button>
+        <button type="button" class="room-btn" data-id="c12">Classroom 12 (0)</button>
+        <button type="button" class="room-btn" data-id="c13">Classroom 13 (0)</button>
+        <button type="button" class="room-btn" data-id="c14">Classroom 14 (0)</button>
+        <button type="button" class="room-btn" data-id="teachers">Teachers' Lounge (0)</button>
+        <button type="button" class="room-btn" data-id="secretariat">Secretariat Office (0)</button>
+        <button type="button" class="room-btn" data-id="coord1">Fernanda / Roberval Office (0)</button>
+        <button type="button" class="room-btn" data-id="coord2">Talita / Julio Office (0)</button>
+        <button type="button" class="room-btn" data-id="coord3">Rog&eacute;rio / Ana Office (0)</button>
+        <button type="button" class="room-btn" data-id="principal">Principal's Office (0)</button>
+        <button type="button" class="room-btn" data-id="proati">PROATI Room (0)</button>
+        <button type="button" class="room-btn" data-id="resource">Resource Room (0)</button>
+        <button type="button" class="room-btn" data-id="appendice">Appendice Room (0)</button>
     </div>
 
     <div class="panel">
         <h2 id="selectedTitle" style="margin:0; font-size: 18px;">Selected: Classroom 1 (0 Ethernet Drops)</h2>
         <div class="actions">
-            <button type="button" class="add-btn" onclick="changeDrops(1)">+ Add Ethernet Drop</button>
-            <button type="button" class="rem-btn" id="removeBtn" onclick="changeDrops(-1)" disabled>- Remove Ethernet Drop</button>
+            <button type="button" class="add-btn" id="btnAdd">+ Add Ethernet Drop</button>
+            <button type="button" class="rem-btn" id="btnRemove" disabled>- Remove Ethernet Drop</button>
         </div>
         <div class="drops-grid" id="dropsView"></div>
     </div>
 
     <div class="report-box">
         <div class="report-header">
-            <h3 id="reportTitle" style="margin:0; font-size: 16px;">Network Infrastructure Report — November 17, 2026</h3>
-            <button type="button" class="download-btn" onclick="window.print()">Download</button>
+            <h3 id="reportTitle" style="margin:0; font-size: 16px;">Network Infrastructure Report</h3>
+            <button type="button" class="download-btn" id="btnDownload">Download</button>
         </div>
         <table>
             <thead>
@@ -105,62 +104,76 @@
 </div>
 
 <script>
-    var rooms = [
-        "Classroom 1", "Classroom 2", "Classroom 3", "Classroom 4", "Classroom 5",
-        "Classroom 6", "Classroom 7", "Classroom 8", "Classroom 9", "Classroom 10",
-        "Classroom 11", "Classroom 12", "Classroom 13", "Classroom 14",
-        "Teachers' Lounge",
-        "Secretariat Office",
-        "Fernanda / Roberval Office",
-        "Talita / Julio Office",
-        "Rogério / Ana Office",
-        "Principal's Office",
-        "PROATI Room",
-        "Resource Room",
-        "Appendice Room"
+    var roomKeys = [
+        "c1", "c2", "c3", "c4", "c5", "c6", "c7",
+        "c8", "c9", "c10", "c11", "c12", "c13", "c14",
+        "teachers", "secretariat", "coord1", "coord2",
+        "coord3", "principal", "proati", "resource", "appendice"
     ];
 
+    var roomNames = {
+        c1: "Classroom 1", c2: "Classroom 2", c3: "Classroom 3", c4: "Classroom 4",
+        c5: "Classroom 5", c6: "Classroom 6", c7: "Classroom 7", c8: "Classroom 8",
+        c9: "Classroom 9", c10: "Classroom 10", c11: "Classroom 11", c12: "Classroom 12",
+        c13: "Classroom 13", c14: "Classroom 14",
+        teachers: "Teachers' Lounge",
+        secretariat: "Secretariat Office",
+        coord1: "Fernanda / Roberval Office",
+        coord2: "Talita / Julio Office",
+        coord3: "Rog\u00e9rio / Ana Office",
+        principal: "Principal's Office",
+        proati: "PROATI Room",
+        resource: "Resource Room",
+        appendice: "Appendice Room"
+    };
+
     var counts = {};
-    for (var i = 0; i < rooms.length; i++) {
-        counts[rooms[i]] = 0;
+    for (var i = 0; i < roomKeys.length; i++) {
+        counts[roomKeys[i]] = 0;
     }
 
     try {
-        var saved = localStorage.getItem("network_drops_v6");
+        var saved = localStorage.getItem("network_drops_v7");
         if (saved) {
             var parsed = JSON.parse(saved);
-            for (var k = 0; k < rooms.length; k++) {
-                if (typeof parsed[rooms[k]] === "number") {
-                    counts[rooms[k]] = parsed[rooms[k]];
+            for (var k = 0; k < roomKeys.length; k++) {
+                var key = roomKeys[k];
+                if (typeof parsed[key] === "number") {
+                    counts[key] = parsed[key];
                 }
             }
         }
     } catch (e) {}
 
-    var selectedRoom = "Classroom 1";
+    var selectedId = "c1";
 
     function saveLocal() {
         try {
-            localStorage.setItem("network_drops_v6", JSON.stringify(counts));
+            localStorage.setItem("network_drops_v7", JSON.stringify(counts));
         } catch (e) {}
     }
 
     function getFormattedDate() {
-        var options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date().toLocaleDateString('en-US', options);
-    }
-
-    function selectRoom(roomName, btnElement) {
-        selectedRoom = roomName;
-        var allBtns = document.querySelectorAll(".room-btn");
-        for (var i = 0; i < allBtns.length; i++) {
-            allBtns[i].classList.remove("active");
-        }
-        if (btnElement) {
-            btnElement.classList.add("active");
-        }
-        updateScreen();
+        var options = { year: "numeric", month: "long", day: "numeric" };
+        return new Date().toLocaleDateString("en-US", options);
     }
 
     function updateScreen() {
         var allBtns = document.querySelectorAll(".room-btn");
+        for (var i = 0; i < allBtns.length; i++) {
+            var btn = allBtns[i];
+            var id = btn.getAttribute("data-id");
+            btn.textContent = roomNames[id] + " (" + counts[id] + ")";
+            if (id === selectedId) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+        }
+
+        var currentName = roomNames[selectedId];
+        var currentCount = counts[selectedId];
+        document.getElementById("selectedTitle").textContent = "Selected: " + currentName + " (" + currentCount + " Ethernet Drops)";
+        document.getElementById("btnRemove").disabled = (currentCount === 0);
+
+        var view = document.getElementById("dropsView");
