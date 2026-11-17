@@ -31,6 +31,19 @@
         th { background: #1e293b; color: #cbd5e1; }
         td.num, th.num { text-align: right; }
         tr.total-row td { background: #1e293b; font-weight: bold; color: #38bdf8; border-top: 2px solid #475569; }
+
+        /* Regras para gerar o PDF apenas com o Relatório */
+        @media print {
+            body { background: #ffffff !important; color: #000000 !important; padding: 0 !important; display: block !important; }
+            .box { background: #ffffff !important; border: none !important; padding: 0 !important; max-width: 100% !important; }
+            h1, .subtitle, .grid, .panel, .download-btn { display: none !important; }
+            .report-box { background: #ffffff !important; border: none !important; padding: 10px !important; }
+            .report-header h3 { color: #000000 !important; font-size: 18px !important; margin-bottom: 12px !important; }
+            table { border: 1px solid #cccccc !important; }
+            th { background: #f1f5f9 !important; color: #000000 !important; border-bottom: 2px solid #94a3b8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            td { color: #000000 !important; border-bottom: 1px solid #cbd5e1 !important; }
+            tr.total-row td { background: #e2e8f0 !important; color: #000000 !important; border-top: 2px solid #64748b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
     </style>
 </head>
 <body>
@@ -76,8 +89,8 @@
 
     <div class="report-box">
         <div class="report-header">
-            <h3 id="reportTitle" style="margin:0; font-size: 16px;">Network Infrastructure Report</h3>
-            <button type="button" class="download-btn" onclick="downloadPDF()">Download</button>
+            <h3 id="reportTitle" style="margin:0; font-size: 16px;">Network Infrastructure Report — November 17, 2026</h3>
+            <button type="button" class="download-btn" onclick="window.print()">Download</button>
         </div>
         <table>
             <thead>
@@ -113,7 +126,7 @@
     }
 
     try {
-        var saved = localStorage.getItem("network_drops_v5");
+        var saved = localStorage.getItem("network_drops_v6");
         if (saved) {
             var parsed = JSON.parse(saved);
             for (var k = 0; k < rooms.length; k++) {
@@ -128,7 +141,7 @@
 
     function saveLocal() {
         try {
-            localStorage.setItem("network_drops_v5", JSON.stringify(counts));
+            localStorage.setItem("network_drops_v6", JSON.stringify(counts));
         } catch (e) {}
     }
 
@@ -151,29 +164,3 @@
 
     function updateScreen() {
         var allBtns = document.querySelectorAll(".room-btn");
-        for (var i = 0; i < rooms.length; i++) {
-            var r = rooms[i];
-            if (allBtns[i]) {
-                allBtns[i].textContent = r + " (" + counts[r] + ")";
-                if (r === selectedRoom) {
-                    allBtns[i].classList.add("active");
-                } else {
-                    allBtns[i].classList.remove("active");
-                }
-            }
-        }
-
-        var currentCount = counts[selectedRoom];
-        document.getElementById("selectedTitle").textContent = "Selected: " + selectedRoom + " (" + currentCount + " Ethernet Drops)";
-        document.getElementById("removeBtn").disabled = (currentCount === 0);
-
-        var view = document.getElementById("dropsView");
-        view.innerHTML = "";
-        if (currentCount === 0) {
-            view.innerHTML = "<span style='color:#94a3b8; font-style:italic;'>No Ethernet Drops registered in " + selectedRoom + " yet.</span>";
-        } else {
-            for (var j = 1; j <= currentCount; j++) {
-                var card = document.createElement("div");
-                card.className = "drop-card";
-                card.textContent = "Ethernet Drop #" + (j < 10 ? "0" + j : j);
-                view.appendChild(card);
